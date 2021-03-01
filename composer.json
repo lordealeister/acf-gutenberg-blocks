@@ -17,6 +17,8 @@
     "wordplate/acf": "^9.1@dev"
   },
 	"autoload": {
-    "files": ["BlocksController.php"]
+    "psr-4": {
+      "AcfGutenbergBlocks\\": "src/"
+    }
   }
 }
