@@ -13,6 +13,13 @@ class BlocksController {
         if(!function_exists('add_action'))
             return;
 
+        // Add the default blocks location, 'views/blocks', via filter
+        add_filter('sage-acf-gutenberg-blocks-controllers', function() {
+            return [
+                'app/Blocks',
+            ];
+        });
+
         add_action('acf/init', array($this, 'init'));
     }
 
@@ -128,12 +135,5 @@ class BlocksController {
     }
 
 }
-
-// Add the default blocks location, 'views/blocks', via filter
-add_filter('sage-acf-gutenberg-blocks-controllers', function() {
-    return [
-        'app/Blocks',
-    ];
-});
 
 new BlocksController;
