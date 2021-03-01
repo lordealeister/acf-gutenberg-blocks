@@ -1,0 +1,22 @@
+{
+  "name": "lordealeister/acf-gutenberg-blocks",
+  "description": "Create Gutenberg blocks from Sage blade templates with controllers",
+  "keywords": ["wordpress", "gutenberg", "advanced custom fields"],
+  "homepage": "https://github.com/lordealeister/acf-gutenberg-blocks",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Lorde Aleister",
+      "email": "lordealeister@gmail.com",
+      "homepage": "https://github.com/lordealeister"
+    }
+  ],
+  "require": {
+    "php": ">=5.3.2",
+    "mwdelaney/sage-acf-gutenberg-blocks": "dev-master",
+    "wordplate/acf": "^9.1@dev"
+  },
+	"autoload": {
+    "files": ["BlocksController.php"]
+  }
+}
