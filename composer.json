@@ -19,6 +19,7 @@
 	"autoload": {
     "psr-4": {
       "AcfGutenbergBlocks\\": "src/"
-    }
+    },
+    "files": ["src/BlocksController.php"]
   }
 }

@@ -135,3 +135,5 @@ add_filter('sage-acf-gutenberg-blocks-controllers', function() {
         'app/Blocks',
     ];
 });
+
+new BlocksController;
