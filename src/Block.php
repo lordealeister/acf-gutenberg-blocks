@@ -10,13 +10,15 @@ use WordPlate\Acf\Location;
  */
 abstract class Block {
 
-    protected $name = 'block';
     protected $title = '';
-    protected $instructions = 'Configurações do bloco.';
-    protected $fields = array();
+    protected $instructions = '';
+
+    private $name = '';
 
     public function __construct() {
-        $this->make();
+        $reflection = new \ReflectionClass($this);
+        $this->name = strtolower(preg_replace('/([a-zA-Z])(?=[A-Z])/', '$1-', $reflection->getShortName()));
+
         $this->makeSettings();
     }
 
@@ -27,13 +29,13 @@ abstract class Block {
      */
     protected function makeSettings(): void {
         register_extended_field_group([
-            'key'      => "group_{$this->name}",
+            'key'      => "block_{$this->name}",
             'title'    => ' ',
             'fields'   => [
-                Group::make($this->title, "{$this->name}_settings")
+                Group::make($this->title, $this->name)
                     ->instructions($this->instructions)
                     ->layout('block')
-                    ->fields($this->fields)
+                    ->fields($this->make())
             ],
             'location' => [
                 Location::if('block', "acf/{$this->name}")
@@ -44,7 +46,7 @@ abstract class Block {
             return array_merge(
                 $block,
                 array(
-                    'data' => field("{$this->name}_settings"),
+                    'data' => field($this->name),
                 )
             );
         });
