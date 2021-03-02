@@ -20,7 +20,7 @@ class BlocksController {
             ];
         });
 
-        add_action('acf/init', array($this, 'init'));
+        add_action('acf/init', array($this, 'init'), 1);
     }
 
     public function init() {

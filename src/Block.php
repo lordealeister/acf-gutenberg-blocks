@@ -19,6 +19,31 @@ abstract class Block {
         $reflection = new \ReflectionClass($this);
         $this->name = strtolower(preg_replace('/([a-zA-Z])(?=[A-Z])/', '$1-', $reflection->getShortName()));
 
+        add_filter("sage/blocks/{$this->name}/register-data", function($data) {
+            $previewData = $this->preview();
+
+            if(empty($previewData))
+                return $data;
+
+            $previewData = array_combine(
+                array_map(function($key) {
+                    return "{$this->name}_{$key}";
+                }, array_keys($previewData)),
+                $previewData
+            );
+
+            $previewData = array_merge($previewData, array('is_preview' => true));
+
+            $data['example'] = array(
+                'attributes' => array(
+                    'mode' => 'preview',
+                    'data' => $previewData,
+                ),
+            );
+
+            return $data;
+        });
+
         $this->makeSettings();
     }
 
@@ -41,15 +66,15 @@ abstract class Block {
                 Location::if('block', "acf/{$this->name}")
             ],
         ]);
+    }
 
-        add_filter("sage/blocks/{$this->name}/data", function($block) {
-            return array_merge(
-                $block,
-                array(
-                    'data' => field($this->name),
-                )
-            );
-        });
+    /**
+     * preview
+     *
+     * @return array
+     */
+    protected function preview(): array {
+        return [];
     }
 
     /**
