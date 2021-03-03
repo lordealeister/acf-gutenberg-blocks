@@ -13,10 +13,12 @@ class BlocksController {
         if(!function_exists('add_action'))
             return;
 
+        add_filter('sage-acf-gutenberg-blocks-templates', array($this, 'setBlocksDirectories'));
+
         // Add the default blocks location, 'views/blocks', via filter
         add_filter('sage-acf-gutenberg-blocks-controllers', function() {
             return [
-                'app/Blocks',
+                'views/blocks',
             ];
         });
 
@@ -24,31 +26,28 @@ class BlocksController {
     }
 
     public function init() {
-        $themeDirectory = wp_get_theme();
-        $themeDirectory = "{$themeDirectory->theme_root}/{$themeDirectory->stylesheet}";
-
         // Get an array of directories containing blocks
         $directories = apply_filters('sage-acf-gutenberg-blocks-controllers', []);
 
         // Check whether ACF exists before continuing
         foreach($directories as $directory):
-            $dir = "{$themeDirectory}/{$directory}";
+            $dir = \App\isSage10() ? \Roots\resource_path($directory) : \locate_template($directory);
 
             // Sanity check whether the directory we're iterating over exists first
             if(!file_exists($dir))
                 return;
 
-            // Iterate over the directories provided and look for templates
-            $controllersDirectory = new \DirectoryIterator($dir);
+            $directory = new \RecursiveDirectoryIterator($dir);
+            $iterator = new \RecursiveIteratorIterator($directory);
 
-            foreach($controllersDirectory as $controller):
-                if($controller->isDot() || $controller->isDir())
+            foreach($iterator as $path):
+                if(!$this->isController($path))
                     continue;
 
                 // Get namespace from file
-                $namespace = $this->getNamespace($controller->getPathname());
+                $namespace = $this->getNamespace($path->getPathname());
                 // Strip the file extension to get the class name
-                $className = $this->removeFileExtension($controller->getFilename());
+                $className = $this->removeFileExtension($path->getFilename());
 
                 // If there is no class name (most likely because the filename does
                 // not end with ".php"), move on to the next file
@@ -56,7 +55,7 @@ class BlocksController {
                     continue;
 
                 // Include file
-                require_once $controller->getPathname();
+                require_once $path->getPathname();
                 $class = !empty($namespace) ? "{$namespace}\\{$className}" : $className;
 
                 // Instantiate controller
@@ -83,6 +82,19 @@ class BlocksController {
 
         // Return original name if the filename doesn't match the pattern
         return $fileName;
+    }
+
+    /**
+     * isController
+     *
+     * @param  mixed $path
+     * @return bool
+     */
+    protected function isController($path): bool {
+        if(!$path->isFile() || $path->isFile() && $path->getExtension() != 'php')
+            return false;
+
+        return !strpos($path->getFileName(), '.blade');
     }
 
     /**
@@ -132,6 +144,30 @@ class BlocksController {
         endif;
 
         return '';
+    }
+
+    /**
+     * setBlocksDirectories
+     *
+     * @param  mixed $directories
+     * @return array
+     */
+    public function setBlocksDirectories($directories): array {
+        $newDirectories = array();
+
+        foreach($directories as $directory):
+            $dir = \App\isSage10() ? \Roots\resource_path($directory) : \locate_template($directory);
+
+            $directoryIterator = new \RecursiveDirectoryIterator($dir);
+            $iterator = new \RecursiveIteratorIterator($directoryIterator, \RecursiveIteratorIterator::SELF_FIRST);
+
+            foreach($iterator as $path):
+                if($path->isDir() && $path->getFileName() != '.' && $path->getFileName() != '..')
+                    array_push($newDirectories, "{$directory}/{$path->getFileName()}");
+            endforeach;
+        endforeach;
+
+        return array_merge($directories, $newDirectories);
     }
 
 }
