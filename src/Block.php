@@ -6,12 +6,11 @@ use WordPlate\Acf\Fields\Group;
 use WordPlate\Acf\Location;
 
 /**
- * Block Abstract class to register block fields
+ * Block Class to register block fields
  */
-abstract class Block {
+class Block {
 
     protected $title = '';
-    protected $instructions = '';
 
     private $name = '';
 
@@ -19,8 +18,55 @@ abstract class Block {
         $reflection = new \ReflectionClass($this);
         $this->name = strtolower(preg_replace('/([a-zA-Z])(?=[A-Z])/', '$1-', $reflection->getShortName()));
 
-        add_filter("sage/blocks/{$this->name}/register-data", function($data) {
-            $previewData = $this->preview();
+        add_filter("sage/blocks/{$this->name}/register-data", array($this, 'previewData'));
+        add_filter("sage/blocks/{$this->name}/data", array($this, 'blockData'));
+        add_filter('render_block', array($this, 'render'), 1, 2);
+
+        $this->makeSettings();
+    }
+
+    /**
+     * makeSettings
+     *
+     * @return void
+     */
+    protected function makeSettings(): void {
+        register_extended_field_group([
+            'key'      => "block_{$this->name}",
+            'title'    => $this->title,
+            'fields'   => $this->make(),
+            'location' => [
+                Location::if('block', "acf/{$this->name}")
+            ],
+        ]);
+    }
+
+    /**
+     * preview
+     *
+     * @return array
+     */
+    protected function preview(): array {
+        return [];
+    }
+
+    /**
+     * allowedInnerBlocks
+     *
+     * @return array
+     */
+    protected function allowedInnerBlocks(): array {
+        return [];
+    }
+
+    /**
+     * previewData
+     *
+     * @param  array $data
+     * @return array
+     */
+    public function previewData(array $data): array {
+        $previewData = $this->preview();
 
             if(empty($previewData))
                 return $data;
@@ -41,40 +87,46 @@ abstract class Block {
                 ),
             );
 
-            return $data;
-        });
-
-        $this->makeSettings();
+        return $data;
     }
 
     /**
-     * makeSettings
+     * blockData
      *
-     * @return void
-     */
-    protected function makeSettings(): void {
-        register_extended_field_group([
-            'key'      => "block_{$this->name}",
-            'title'    => ' ',
-            'fields'   => [
-                Group::make($this->title, $this->name)
-                    ->instructions($this->instructions)
-                    ->layout('block')
-                    ->fields($this->make())
-            ],
-            'location' => [
-                Location::if('block', "acf/{$this->name}")
-            ],
-        ]);
-    }
-
-    /**
-     * preview
-     *
+     * @param  array $block
      * @return array
      */
-    protected function preview(): array {
-        return [];
+    public function blockData(array $block): array {
+        return array_merge(
+            $block,
+            array(
+                'allowed_blocks' => wp_json_encode($this->allowedInnerBlocks()),
+            )
+        );
+    }
+
+    /**
+     * content
+     *
+     * @param  string $content
+     * @return string
+     */
+    protected function content(string $content): string {
+        return $content;
+    }
+
+    /**
+     * render
+     *
+     * @param  string $block_content
+     * @param  array $block
+     * @return string
+     */
+    public function render(string $block_content, array $block): string {
+        if($block['blockName'] != "acf/{$this->name}")
+            return $block_content;
+
+        return $this->content($block_content);
     }
 
     /**
@@ -82,6 +134,8 @@ abstract class Block {
      *
      * @return array
      */
-    abstract protected function make(): array;
+    protected function make(): array {
+        return [];
+    }
 
 }
