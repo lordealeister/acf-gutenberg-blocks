@@ -7,7 +7,7 @@ use WordPlate\Acf\Fields\Accordion;
 /**
  * AccordionField Helper for creating an accordion field
  *
- * @package ACF Gutenberg Blocks
+ * @package ACFGutenbergBlocks
  * @author Lorde Aleister
  * @access public
  */
@@ -16,7 +16,7 @@ class AccordionExtended {
     /**
      * make Create Wordplate field
      *
-     * @param  mixed $title field title
+     * @param  mixed $title Field title
      * @param  mixed $name Field name
      * @param  mixed $icon Dashicon to be used next to the title
      * @return Field Field with settings

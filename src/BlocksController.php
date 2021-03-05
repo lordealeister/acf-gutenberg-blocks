@@ -2,6 +2,13 @@
 
 namespace AcfGutenbergBlocks;
 
+/**
+ * BlocksController Manage blocks
+ *
+ * @package ACFGutenbergBlocks
+ * @author Lorde Aleister
+ * @access public
+ */
 class BlocksController {
 
     public function __construct() {

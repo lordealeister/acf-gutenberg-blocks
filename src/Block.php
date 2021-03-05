@@ -6,26 +6,45 @@ use WordPlate\Acf\Location;
 
 /**
  * Block Class to register block fields
+ *
+ * @package ACFGutenbergBlocks
+ * @author Lorde Aleister
+ * @access public
  */
 class Block {
 
+    /**
+     * title Block title
+     *
+     * @var string
+     */
     protected $title = '';
 
+    /**
+     * name Block name
+     *
+     * @var string
+     */
     private $name = '';
 
     public function __construct() {
+        // Get block name from file
         $reflection = new \ReflectionClass($this);
         $this->name = strtolower(preg_replace('/([a-zA-Z])(?=[A-Z])/', '$1-', $reflection->getShortName()));
 
+        // Insert preview
         add_filter("sage/blocks/{$this->name}/register-data", array($this, 'previewData'));
+        // Modify block data
         add_filter("sage/blocks/{$this->name}/data", array($this, 'blockData'));
+        // Filter content
         add_filter('render_block', array($this, 'render'), 1, 2);
 
+        // Register field group
         $this->makeSettings();
     }
 
     /**
-     * makeSettings
+     * makeSettings Register a new field group in ACF
      *
      * @return void
      */
@@ -41,7 +60,7 @@ class Block {
     }
 
     /**
-     * preview
+     * preview Register block preview
      *
      * @return array
      */
@@ -50,53 +69,46 @@ class Block {
     }
 
     /**
-     * allowedInnerBlocks
+     * previewData Insert preview to register block
      *
-     * @return array
+     * @param  array $data Current block data
+     * @return array Modified block data
+     */
+    public function previewData(array $data): array {
+        $previewData = $this->preview();
+
+        if(empty($previewData))
+            return $data;
+
+        $previewData = array_merge($previewData, array('is_preview' => true));
+
+        $data['example'] = array(
+            'attributes' => array(
+                'mode' => 'preview',
+                'data' => $previewData,
+            ),
+        );
+
+        return $data;
+    }
+
+    /**
+     * allowedInnerBlocks Registers the blocks that can be inserted in the block content
+     *
+     * @return array Allowed blocks list
      */
     protected function allowedInnerBlocks(): array {
         return [];
     }
 
     /**
-     * previewData
+     * blockData Modify block var passed to template
      *
-     * @param  array $data
-     * @return array
-     */
-    public function previewData(array $data): array {
-        $previewData = $this->preview();
-
-            if(empty($previewData))
-                return $data;
-
-            $previewData = array_combine(
-                array_map(function($key) {
-                    return "{$this->name}_{$key}";
-                }, array_keys($previewData)),
-                $previewData
-            );
-
-            $previewData = array_merge($previewData, array('is_preview' => true));
-
-            $data['example'] = array(
-                'attributes' => array(
-                    'mode' => 'preview',
-                    'data' => $previewData,
-                ),
-            );
-
-        return $data;
-    }
-
-    /**
-     * blockData
-     *
-     * @param  array $block
-     * @return array
+     * @param  array $block Current block data
+     * @return array Modified block data
      */
     public function blockData(array $block): array {
-        // TODO: Melhorar forma de obter innerBlocks
+        // TODO: get from render and insert into block data
         $innerBlocks = array();
 
         $xml = new \DOMDocument();
@@ -120,21 +132,21 @@ class Block {
     }
 
     /**
-     * content
+     * content Filter block content
      *
-     * @param  string $content
-     * @return string
+     * @param  string $content Current content
+     * @return string Modified content
      */
     protected function content(string $content): string {
         return $content;
     }
 
     /**
-     * render
+     * render Filter block render
      *
-     * @param  string $block_content
-     * @param  array $block
-     * @return string
+     * @param  string $block_content Block content output
+     * @param  array $block Block data
+     * @return string Modified block content
      */
     public function render(string $block_content, array $block): string {
         if($block['blockName'] != "acf/{$this->name}")
@@ -144,11 +156,11 @@ class Block {
     }
 
     /**
-     * make
+     * fields Set Wordplate block fields
      *
-     * @return array
+     * @return array Fields list
      */
-    protected function make(): array {
+    protected function fields(): array {
         return [];
     }
 
