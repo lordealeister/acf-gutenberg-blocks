@@ -2,7 +2,6 @@
 
 namespace AcfGutenbergBlocks;
 
-use WordPlate\Acf\Fields\Group;
 use WordPlate\Acf\Location;
 
 /**
@@ -97,10 +96,25 @@ class Block {
      * @return array
      */
     public function blockData(array $block): array {
+        // TODO: Melhorar forma de obter innerBlocks
+        $innerBlocks = array();
+
+        $xml = new \DOMDocument();
+        $xml->loadHTML($block['content']);
+        $root = $xml->getElementsByTagName('body');
+
+        foreach($root->item(0)->childNodes as $node):
+            if(get_class($node) == 'DOMText')
+                continue;
+
+            array_push($innerBlocks, $node);
+        endforeach;
+
         return array_merge(
             $block,
             array(
                 'allowed_blocks' => wp_json_encode($this->allowedInnerBlocks()),
+                'inner_blocks' => $innerBlocks,
             )
         );
     }
