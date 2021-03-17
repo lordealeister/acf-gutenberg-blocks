@@ -52,7 +52,7 @@ class Block {
         register_extended_field_group([
             'key'      => "block_{$this->name}",
             'title'    => $this->title,
-            'fields'   => $this->make(),
+            'fields'   => $this->fields(),
             'location' => [
                 Location::if('block', "acf/{$this->name}")
             ],
